@@ -1,16 +1,36 @@
-# React + Vite
+# Eco-Ciclo · Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Frontend do Eco-Ciclo (React + Vite), em Irecê–BA.
 
-Currently, two official plugins are available:
+## Como rodar
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```bash
+npm install
+cp .env.example .env   # opcional: VITE_API_URL, padrão http://localhost:8080
+npm run dev            # http://localhost:5173
+```
 
-## React Compiler
+O backend ([Eco_Ciclo_Back](https://github.com/Ianqrzz/Eco_Ciclo_Back)) precisa estar rodando.
+Ele só aceita chamadas da origem `http://localhost:5173` (variável `CORS_ALLOWED_ORIGINS` do backend).
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Outros comandos: `npm run lint` (oxlint) e `npm run build`.
 
-## Expanding the Oxlint configuration
+## Telas
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+| Rota | Tela |
+|---|---|
+| `/solicitar` | Solicitar coleta: tipo de resíduo, descrição, quantidade, foto e endereço pelo GPS |
+| `/solicitacao/:id` | Acompanhamento: protocolo, status e cancelamento (só antes da aceitação) |
+
+Login, cadastro e painel da prefeitura entram como novas rotas em `src/main.jsx`.
+
+## Integração com o login
+
+As telas de solicitação leem o morador logado de `sessionStorage`, na chave `ecociclo.usuario`.
+O login deve gravar lá o JSON devolvido por `POST /usuario/login`:
+
+```js
+sessionStorage.setItem('ecociclo.usuario', JSON.stringify(respostaDoLogin)); // { id, nome, email, perfil }
+```
+
+O botão "Sair" limpa essa chave e redireciona para `/login`. Detalhes em `src/sessao.js`.
