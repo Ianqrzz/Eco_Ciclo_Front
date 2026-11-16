@@ -89,7 +89,8 @@ export default function Login() {
       salvarUsuario(usuario);
       navigate(ehPrefeitura ? ROTA_PREFEITURA : ROTA_SOLICITAR, { replace: true });
     } catch (err) {
-      setErro(err instanceof ApiError ? err.message : 'Não foi possível entrar. Tente novamente.');
+      console.error('Erro no login:', err);
+      setErro(err instanceof ApiError ? err.message : (err?.message ?? 'Não foi possível entrar. Tente novamente.'));
       setEnviando(false);
     }
   }

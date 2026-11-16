@@ -11,14 +11,21 @@ export class ApiError extends Error {}
 /** Lê os formatos de erro do backend: validação, BusinessException e ProblemDetail. */
 async function lerErro(resposta) {
   try {
-    const corpo = await resposta.json();
-    if (corpo?.fieldsMessage) return corpo.fieldsMessage;
-    if (corpo?.message) return corpo.message;
-    if (corpo?.detail) return corpo.detail;
+    const texto = await resposta.text();
+    try {
+      const corpo = JSON.parse(texto);
+      if (corpo?.fieldsMessage) return corpo.fieldsMessage;
+      if (corpo?.message) return corpo.message;
+      if (corpo?.detail) return corpo.detail;
+      if (corpo?.error) return corpo.error;
+    } catch {
+      if (texto && texto.trim()) return texto;
+    }
   } catch {
-    // corpo vazio ou não-JSON
+    // corpo vazio ou não-legível
   }
   if (resposta.status === 413) return 'A foto deve ter no máximo 5 MB.';
+  if (resposta.status === 400 || resposta.status === 401) return 'E-mail ou senha inválidos.';
   return 'Não foi possível concluir. Tente novamente.';
 }
 
@@ -31,11 +38,10 @@ async function requisicao(caminho, init) {
   }
   if (!resposta.ok) throw new ApiError(await lerErro(resposta));
 
-  const contentType = resposta.headers.get('content-type') ?? '';
-  if (contentType.includes('application/json')) {
-    return resposta.json();
-  }
   const texto = await resposta.text();
+  if (!texto || !texto.trim()) {
+    return null;
+  }
   try {
     return JSON.parse(texto);
   } catch {
