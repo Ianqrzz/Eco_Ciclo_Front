@@ -30,7 +30,17 @@ async function requisicao(caminho, init) {
     throw new ApiError('Sem conexão com o servidor. Verifique sua internet.');
   }
   if (!resposta.ok) throw new ApiError(await lerErro(resposta));
-  return resposta.json();
+
+  const contentType = resposta.headers.get('content-type') ?? '';
+  if (contentType.includes('application/json')) {
+    return resposta.json();
+  }
+  const texto = await resposta.text();
+  try {
+    return JSON.parse(texto);
+  } catch {
+    return texto;
+  }
 }
 
 /**
@@ -53,16 +63,134 @@ export function cancelarSolicitacao(id, moradorId) {
   return requisicao(`/api/v1/solicitacoes-coleta/${id}/cancelar?moradorId=${moradorId}`, { method: 'PATCH' });
 }
 
-
 /**
  * Autentica o usuário (POST /usuario/login).
  * @param {{ email: string, senha: string }} credenciais
- * @returns {Promise<{ id: number, nome: string, email: string, perfil: 'MORADOR' | 'PREFEITURA' }>}
+ * @returns {Promise<{ id: number, nome: string, email: string, perfil: 'MORADOR' | 'PREFEITURA' | 'EQUIPE_MUNICIPAL' }>}
  */
 export function loginUsuario({ email, senha }) {
   return requisicao('/usuario/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email, senha }),
+  });
+}
+
+/* ==========================================================================
+ * MÓDULO EXCLUSIVO DA PREFEITURA / EQUIPE MUNICIPAL (RF03 e RF04)
+ * ========================================================================== */
+
+/**
+ * RF03: Lista todas as solicitações no painel exclusivo da prefeitura com filtros e paginação.
+ * @param {object} filtro { status, tipoResiduo, bairro, dataInicio, dataFim, termo }
+ * @param {number} [pagina=0]
+ * @param {number} [tamanho=10]
+ * @param {string} [ordenacao='dataSolicitacao,desc']
+ */
+export function listarSolicitacoesPrefeitura(filtro = {}, pagina = 0, tamanho = 10, ordenacao = 'dataSolicitacao,desc') {
+  const params = new URLSearchParams();
+  if (filtro.status) params.append('status', filtro.status);
+  if (filtro.tipoResiduo) params.append('tipoResiduo', filtro.tipoResiduo);
+  if (filtro.bairro?.trim()) params.append('bairro', filtro.bairro.trim());
+  if (filtro.termo?.trim()) params.append('termo', filtro.termo.trim());
+  if (filtro.dataInicio) params.append('dataInicio', filtro.dataInicio);
+  if (filtro.dataFim) params.append('dataFim', filtro.dataFim);
+  if (pagina != null) params.append('page', pagina);
+  if (tamanho != null) params.append('size', tamanho);
+  if (ordenacao) params.append('sort', ordenacao);
+
+  const query = params.toString() ? `?${params.toString()}` : '';
+  return requisicao(`/api/v1/painel-prefeitura/solicitacoes${query}`);
+}
+
+/**
+ * RF03: Obtém detalhes completos de uma solicitação no painel da Prefeitura.
+ * @param {number|string} id
+ */
+export function obterDetalhesSolicitacaoPrefeitura(id) {
+  return requisicao(`/api/v1/painel-prefeitura/solicitacoes/${id}`);
+}
+
+/**
+ * RF03: Obtém as estatísticas consolidadas de solicitações para os KPIs do painel da Prefeitura.
+ */
+export function obterEstatisticasPrefeitura() {
+  return requisicao('/api/v1/painel-prefeitura/estatisticas');
+}
+
+/**
+ * RF04: Permite à Equipe Municipal aceitar uma solicitação de coleta.
+ * @param {number|string} id
+ * @param {string} [observacoesEquipe]
+ */
+export function aceitarSolicitacaoPrefeitura(id, observacoesEquipe = '') {
+  return requisicao(`/api/v1/painel-prefeitura/solicitacoes/${id}/aceitar`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ observacoesEquipe: observacoesEquipe || undefined }),
+  });
+}
+
+/**
+ * RF04: Permite à Equipe Municipal rejeitar uma solicitação de coleta com motivo obrigatório.
+ * @param {number|string} id
+ * @param {string} motivoRejeicao
+ */
+export function rejeitarSolicitacaoPrefeitura(id, motivoRejeicao) {
+  return requisicao(`/api/v1/painel-prefeitura/solicitacoes/${id}/rejeitar`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ motivoRejeicao }),
+  });
+}
+
+/**
+ * RF04: Permite à Equipe Municipal mudar o status de uma coleta.
+ * @param {number|string} id
+ * @param {{ novoStatus: string, observacoesEquipe?: string, motivoCancelamento?: string }} dados
+ */
+export function atualizarStatusPrefeitura(id, { novoStatus, observacoesEquipe = '', motivoCancelamento = '' }) {
+  const corpo = { novoStatus };
+  if (observacoesEquipe?.trim()) corpo.observacoesEquipe = observacoesEquipe.trim();
+  if (motivoCancelamento?.trim()) corpo.motivoCancelamento = motivoCancelamento.trim();
+
+  return requisicao(`/api/v1/painel-prefeitura/solicitacoes/${id}/status`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(corpo),
+  });
+}
+
+/**
+ * RF04: Permite à Equipe Municipal agendar data e responsável para a coleta.
+ * @param {number|string} id
+ * @param {{ dataAgendada: string, responsavelEquipe: string, observacoesEquipe?: string }} dados
+ */
+export function agendarSolicitacaoPrefeitura(id, { dataAgendada, responsavelEquipe, observacoesEquipe = '' }) {
+  return requisicao(`/api/v1/painel-prefeitura/solicitacoes/${id}/agendar`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      dataAgendada,
+      responsavelEquipe,
+      observacoesEquipe: observacoesEquipe || undefined,
+    }),
+  });
+}
+
+/**
+ * RF04: Permite à Equipe Municipal agendar em lote múltiplas coletas.
+ * @param {{ solicitacoesIds: number[], dataAgendada: string, responsavelEquipe: string, observacoesEquipe?: string }} dados
+ */
+export function agendarEmLotePrefeitura({ solicitacoesIds, dataAgendada, responsavelEquipe, observacoesEquipe = '' }) {
+  return requisicao('/api/v1/painel-prefeitura/solicitacoes/agendar-lote', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      solicitacoesIds,
+      dataAgendada,
+      responsavelEquipe,
+      observacoesEquipe: observacoesEquipe || undefined,
+    }),
   });
 }
