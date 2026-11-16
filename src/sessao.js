@@ -7,8 +7,14 @@
  */
 export const CHAVE_SESSAO = 'ecociclo.usuario';
 
-/** Rota da tela de login da outra equipe, usada pelo botão "Sair". */
+/** Rotas principais da aplicação. */
 export const ROTA_LOGIN = '/login';
+export const ROTA_SOLICITAR = '/solicitar';
+export const ROTA_PREFEITURA = '/prefeitura';
+
+export function salvarUsuario(usuario) {
+  sessionStorage.setItem(CHAVE_SESSAO, JSON.stringify(usuario));
+}
 
 export function lerUsuario() {
   try {

@@ -52,3 +52,17 @@ export function buscarSolicitacao(id) {
 export function cancelarSolicitacao(id, moradorId) {
   return requisicao(`/api/v1/solicitacoes-coleta/${id}/cancelar?moradorId=${moradorId}`, { method: 'PATCH' });
 }
+
+
+/**
+ * Autentica o usuário (POST /usuario/login).
+ * @param {{ email: string, senha: string }} credenciais
+ * @returns {Promise<{ id: number, nome: string, email: string, perfil: 'MORADOR' | 'PREFEITURA' }>}
+ */
+export function loginUsuario({ email, senha }) {
+  return requisicao('/usuario/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, senha }),
+  });
+}
