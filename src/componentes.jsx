@@ -9,15 +9,6 @@ export function Icone({ src, area }) {
   );
 }
 
-export function Marca() {
-  return (
-    <div className="marca">
-      <Icone src={logoCiclo} area={32} />
-      <p className="marca__nome">ecociclo</p>
-    </div>
-  );
-}
-
 /** Ícone do botão "Mostrar/Ocultar" dos campos de senha. */
 export function IconeOlho({ visivel }) {
   if (visivel) {
@@ -36,6 +27,15 @@ export function IconeOlho({ visivel }) {
       <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
       <circle cx="12" cy="12" r="3" />
     </svg>
+  );
+}
+
+export function Marca() {
+  return (
+    <div className="marca">
+      <Icone src={logoCiclo} area={32} />
+      <p className="marca__nome">ecociclo</p>
+    </div>
   );
 }
 

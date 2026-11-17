@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ApiError, loginUsuario } from '../api';
 import { Erro, IconeOlho, Marca } from '../componentes';
-import { ROTA_PREFEITURA, ROTA_SOLICITAR, salvarUsuario } from '../sessao';
+import { ROTA_CADASTRO, ROTA_PREFEITURA, ROTA_SOLICITAR, salvarUsuario } from '../sessao';
 
 /** Perfis aceitos pelo backend (enum PerfilUsuario). */
 const PERFIS = [
@@ -169,7 +169,7 @@ export default function Login() {
 
         <p className="texto-cadastro">
           Ainda não tem conta?{' '}
-          <Link to="/cadastro" className="link-primario">
+          <Link to={ROTA_CADASTRO} className="link-primario">
             Criar conta
           </Link>
         </p>

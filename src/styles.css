@@ -465,6 +465,36 @@ button { cursor: pointer; }
   text-align: left;
 }
 
+/* ---------- Tela de Cadastro ---------- */
+
+.tela--cadastro {
+  gap: 20px;
+  padding: 18px 24px 20px;
+}
+
+.topo__voltar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  margin-left: -6px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--dark);
+}
+
+.topo__voltar:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.marca__nome--topo {
+  font-size: 20px;
+}
+
 
 /* ==========================================================================
  * PAINEL EXCLUSIVO DA PREFEITURA / EQUIPE MUNICIPAL (RF03 e RF04)

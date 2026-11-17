@@ -8,6 +8,7 @@ export const CHAVE_SESSAO = 'ecociclo.usuario';
 
 /** Rotas principais da aplicação. */
 export const ROTA_LOGIN = '/login';
+export const ROTA_CADASTRO = '/cadastro';
 export const ROTA_SOLICITAR = '/solicitar';
 export const ROTA_PREFEITURA = '/prefeitura';
 
