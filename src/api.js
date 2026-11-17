@@ -82,6 +82,26 @@ export function loginUsuario({ email, senha }) {
   });
 }
 
+/**
+ * Cadastra um novo cidadão (POST /morador/save).
+ * Regras do backend: nome com 3+ caracteres; senha de 8 a 20 caracteres com maiúscula,
+ * minúscula e caractere especial; telefone só com dígitos (10 ou 11).
+ * @param {{ nome: string, email: string, senha: string, telefone: string }} dados
+ */
+export function cadastrarMorador({ nome, email, senha, telefone }) {
+  return requisicao('/morador/save', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      nome,
+      email,
+      senha,
+      telefone: telefone.replace(/\D/g, ''),
+      perfil: 'MORADOR',
+    }),
+  });
+}
+
 /* ==========================================================================
  * MÓDULO EXCLUSIVO DA PREFEITURA / EQUIPE MUNICIPAL (RF03 e RF04)
  * ========================================================================== */
